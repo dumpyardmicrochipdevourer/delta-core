@@ -231,6 +231,10 @@ class JobFlowTest {
         mvc.perform(post("/api/jobs").header("X-Delta-Token", "nope").header("X-Delta-User", "anna")
                         .contentType(MediaType.APPLICATION_JSON).content("{\"url\":\"https://example.com/ok\"}"))
                 .andExpect(status().isUnauthorized());
+        String id = create(user(), "https://example.com/ok", "video", null);
+        finished(id);
+        mvc.perform(get("/api/jobs/" + id).header("X-Delta-Token", "nope").header("X-Delta-User", "anna"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
