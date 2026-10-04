@@ -22,12 +22,7 @@ public class Owners {
     }
 
     public Owner of(HttpServletRequest request, Jwt jwt) {
-        String token = request.getHeader(BOT_TOKEN);
-        if (token != null) {
-            if (botToken.isBlank() || !MessageDigest.isEqual(
-                    token.getBytes(StandardCharsets.UTF_8), botToken.getBytes(StandardCharsets.UTF_8))) {
-                throw new Refusal(401, "bad_token", "неверный токен");
-            }
+        if (isBot(request)) {
             String user = request.getHeader(BOT_USER);
             if (user == null || !user.matches("^[A-Za-z0-9_-]{1,32}$")) {
                 throw new Refusal(400, "bad_user", "имя должно быть [A-Za-z0-9_-], 1-32 символа");
@@ -42,7 +37,16 @@ public class Owners {
         return new Owner(Owner.Kind.ANON, ip != null && !ip.isBlank() ? ip : request.getRemoteAddr());
     }
 
+    // A token that is present must be right: a wrong one is refused, never treated as a visitor
     public boolean isBot(HttpServletRequest request) {
-        return request.getHeader(BOT_TOKEN) != null;
+        String token = request.getHeader(BOT_TOKEN);
+        if (token == null) {
+            return false;
+        }
+        if (botToken.isBlank() || !MessageDigest.isEqual(
+                token.getBytes(StandardCharsets.UTF_8), botToken.getBytes(StandardCharsets.UTF_8))) {
+            throw new Refusal(401, "bad_token", "неверный токен");
+        }
+        return true;
     }
 }
