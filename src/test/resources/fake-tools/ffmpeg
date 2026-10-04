@@ -1,0 +1,4 @@
+#!/bin/bash
+# writes something to its last argument, like ffmpeg does to its output
+out="${@: -1}"
+printf 'ffmpeg-output' > "$out"

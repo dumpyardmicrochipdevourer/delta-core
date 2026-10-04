@@ -1,0 +1,10 @@
+#!/bin/bash
+dir=.
+args=("$@")
+for ((i = 0; i < ${#args[@]}; i++)); do
+    [ "${args[$i]}" = "-D" ] && dir="${args[$((i + 1))]}"
+done
+# like the real one: nothing comes out of a link it does not know
+[[ "${@: -1}" == *photos* ]] || exit 1
+printf 'a' > "$dir/1.jpg"; sleep 0.1; printf 'b' > "$dir/2.png"
+echo '{"content":"Post text https://t.co/abc"}' > "$dir/1.jpg.json"

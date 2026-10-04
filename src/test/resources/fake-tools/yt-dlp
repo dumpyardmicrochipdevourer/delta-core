@@ -1,0 +1,67 @@
+#!/bin/bash
+# Stand-in for yt-dlp: behaves by keywords in the url.
+dir=.; selector=""; url=""; audio=0; probe=0; android=0; items=""
+args=("$@")
+for ((i = 0; i < ${#args[@]}; i++)); do
+    case "${args[$i]}" in
+        -P) dir="${args[$((i + 1))]}" ;;
+        -f) selector="${args[$((i + 1))]}" ;;
+        -x) audio=1 ;;
+        -J) probe=1 ;;
+        --playlist-items) items="${args[$((i + 1))]}" ;;
+        --extractor-args) [[ "${args[$((i + 1))]}" == *android* ]] && android=1 ;;
+        --) url="${args[$((i + 1))]}" ;;
+    esac
+done
+[ "$probe" = 1 ] || echo "$selector" >> "$dir/../../selectors.log"
+
+if [ "$probe" = 1 ]; then
+    case "$url" in
+        *unsupported*) echo "ERROR: Unsupported URL: $url" >&2; exit 1 ;;
+        *list*) echo '{"_type":"playlist","title":"Course","uploader":"Teacher","playlist_count":3,"entries":[{"title":"One","duration":61},{"title":"Two","duration":120},null]}' ;;
+        *) echo '{"title":"Single","uploader":"Someone","duration":42}' ;;
+    esac
+    exit 0
+fi
+
+case "$url" in
+    *unsupported*) echo "ERROR: Unsupported URL: $url"; exit 1 ;;
+    *private*) echo "ERROR: [youtube] abc123: Private video. Sign in if you've been granted access"; exit 1 ;;
+    *photos*) echo "ERROR: [twitter] 1: No video could be found in this tweet"; exit 1 ;;
+    *live*) echo "[download] Stream does not pass filter (!is_live), skipping .."; exit 0 ;;
+    *bot*) [ "$android" = 1 ] || { echo "ERROR: [youtube] x: Sign in to confirm you're not a bot"; exit 1; } ;;
+    *heavy*) [[ "$selector" == *"height<=360"* ]] || { echo "ERROR: [youtube] x: Requested format is not available"; exit 1; } ;;
+    *flood*) head -c 50000 /dev/zero > "$dir/Flood.mp4.part"; sleep 30; exit 0 ;;
+    *slow*) echo '{"title":"Slow One","uploader":"Chan","duration":10}' > "$dir/Slow_One.info.json"
+            for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do echo "DELTA-P $((i * 10)) 1000 NA 50"; sleep 1; done ;;
+esac
+
+if [ -n "$items" ]; then
+    n=0
+    total=$(echo "$items" | tr ',' '\n' | wc -l | tr -d ' ')
+    for item in $(echo "$items" | tr ',' ' '); do
+        n=$((n + 1))
+        echo "[download] Downloading item $n of $total"
+        name=$(printf '%02d-Part_%s' "$item" "$item")
+        echo "{\"title\":\"Part $item\",\"playlist_title\":\"Course\"}" > "$dir/$name.info.json"
+        echo "DELTA-P 50 100 NA 10"
+        printf 'video-%s' "$item" > "$dir/$name.mp4"
+    done
+    exit 0
+fi
+
+cat > "$dir/Real_Title.info.json" <<JSON
+{"title":"Real: Title?","uploader":"Channel","artist":"Artist","duration":95,
+ "requested_formats":[{"filesize":300},{"filesize_approx":100}]}
+JSON
+if [ "$audio" = 1 ]; then
+    echo "DELTA-P 40 80 NA 20"
+    printf 'cover' > "$dir/Real_Title.jpg"
+    printf 'audio-bytes' > "$dir/Real_Title.mp3"
+else
+    echo "DELTA-P 150 300 NA 1000"
+    echo "DELTA-P 300 300 NA 1000"
+    echo "DELTA-P 50 100 NA 1000"
+    printf 'video-bytes' > "$dir/Real_Title.mp4"
+fi
+exit 0
