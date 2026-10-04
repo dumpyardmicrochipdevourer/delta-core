@@ -1,0 +1,2 @@
+#!/bin/bash
+echo '{"streams":[{"codec_type":"video","width":1280,"height":720},{"codec_type":"audio"}],"format":{"duration":"95.4"}}'
