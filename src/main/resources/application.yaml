@@ -1,0 +1,51 @@
+spring:
+  application.name: delta-core
+  mvc.async.request-timeout: -1
+
+server.port: ${DELTA_PORT:8080}
+
+management:
+  # metrics go out on their own port so the gateway never serves them
+  server.port: ${DELTA_MANAGEMENT_PORT:${DELTA_PORT:8080}}
+  endpoints.web.exposure.include: health,prometheus
+  endpoint.health.probes.enabled: true
+
+delta:
+  root: ${DELTA_ROOT:./data}
+  # finished files; a separate path so the Telegram Bot API server can mount exactly this
+  out: ${DELTA_OUT:${DELTA_ROOT:./data}/out}
+  # work + out together; nothing new starts above it, 5gb
+  budget-bytes: ${DELTA_BUDGET_BYTES:5368709120}
+  # how long a finished file waits to be saved
+  result-ttl: ${DELTA_RESULT_TTL:30m}
+  job-timeout: ${DELTA_JOB_TIMEOUT:90m}
+  max-queue: ${DELTA_MAX_QUEUE:40}
+  anon:
+    max-file-bytes: ${DELTA_ANON_MAX_FILE_BYTES:536870912}
+    max-active: ${DELTA_ANON_MAX_ACTIVE:1}
+    per-hour: ${DELTA_ANON_PER_HOUR:6}
+    playlist-items: 0
+  user:
+    max-file-bytes: ${DELTA_USER_MAX_FILE_BYTES:1900000000}
+    max-active: ${DELTA_USER_MAX_ACTIVE:3}
+    per-hour: ${DELTA_USER_PER_HOUR:30}
+    playlist-items: ${DELTA_USER_PLAYLIST_ITEMS:25}
+  bot:
+    # empty disables the bot api
+    token: ${DELTA_BOT_TOKEN:}
+    max-file-bytes: ${DELTA_BOT_MAX_FILE_BYTES:1900000000}
+    max-active: ${DELTA_BOT_MAX_ACTIVE:3}
+    result-ttl: ${DELTA_BOT_RESULT_TTL:150m}
+  tools:
+    yt-dlp: ${DELTA_YT_DLP:yt-dlp}
+    gallery-dl: ${DELTA_GALLERY_DL:gallery-dl}
+    ffmpeg: ${DELTA_FFMPEG:ffmpeg}
+    ffprobe: ${DELTA_FFPROBE:ffprobe}
+    collage: ${DELTA_COLLAGE:media-collage.py}
+    self-update: ${DELTA_SELF_UPDATE:false}
+  auth:
+    jwks-uri: ${DELTA_AUTH_JWKS_URI:http://localhost:8081/.well-known/jwks.json}
+    issuer: ${DELTA_AUTH_ISSUER:http://localhost:8081}
+
+logging.level:
+  com.microchip.delta_core: INFO
