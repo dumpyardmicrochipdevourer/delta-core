@@ -11,18 +11,21 @@ import org.springframework.stereotype.Component;
 public class StoragePaths {
 
     private final Path jobs;
+    private final Path feedback;
     private final Path work;
     private final Path out;
 
     public StoragePaths(DeltaProperties properties) {
         Path root = Path.of(properties.root()).toAbsolutePath().normalize();
         this.jobs = root.resolve("jobs");
+        this.feedback = root.resolve("feedback");
         this.work = root.resolve("work");
         this.out = properties.out() == null || properties.out().isBlank()
                 ? root.resolve("out")
                 : Path.of(properties.out()).toAbsolutePath().normalize();
         try {
             Files.createDirectories(jobs);
+            Files.createDirectories(feedback);
             Files.createDirectories(work);
             Files.createDirectories(out);
         } catch (IOException e) {
@@ -31,6 +34,7 @@ public class StoragePaths {
     }
 
     public Path jobs() { return jobs; }
+    public Path feedback() { return feedback; }
     public Path work() { return work; }
     public Path out() { return out; }
 
