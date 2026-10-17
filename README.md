@@ -21,7 +21,7 @@ saved for `DELTA_RESULT_TTL` and is removed earlier if the budget is needed.
 
 ## Who can do what
 
-| | anonymous | signed in (lambda-auth token) | bot (`X-Delta-Token`) |
+| | anonymous | signed in (pathos-auth token) | bot (`X-Delta-Token`) |
 |---|---|---|---|
 | at once | 1 | 3 | 3 per user |
 | per hour, per address / account | 6 | 30 | — |
@@ -43,6 +43,18 @@ inside a private network.
 | GET | `/api/jobs/{id}/thumb` | preview, jpeg |
 | POST | `/api/probe` | `{url}` → one video or a playlist with its entries |
 | GET | `/api/limits` | what the caller is allowed |
+
+### Feedback
+
+| method | path | who | what |
+|---|---|---|---|
+| POST | `/api/feedback` | anyone | `{message, contact?}`, up to 8192 chars, 5 per hour per address → 204 |
+| GET | `/api/feedback` | admin | latest 200, newest first: `[{id, body, createdAt, readAt}]` |
+| POST | `/api/feedback/{id}/read` | admin | mark as read → 204 |
+
+Admin is the role `ADMIN` in the token of pathos-auth. Notes are json files in `$DELTA_ROOT/feedback`,
+the same shape as lambda's feedback, so one admin page reads both. The gauge `delta_feedback_unread`
+counts what nobody has read yet.
 
 `mode`: `video`, `audio`, `mute` (video without sound). `options`, each from a
 closed list: `quality` 2160…360, `container` mp4/mkv/webm, `codec` h264/vp9/av1/any,
@@ -67,7 +79,7 @@ over its artwork, and an album also comes as one collage.
 | `DELTA_BUDGET_BYTES` | 5 GiB | work + out together |
 | `DELTA_RESULT_TTL` | `30m` | |
 | `DELTA_BOT_TOKEN` | empty, bot API off | |
-| `DELTA_AUTH_JWKS_URI`, `DELTA_AUTH_ISSUER` | lambda-auth on localhost | |
+| `DELTA_AUTH_JWKS_URI`, `DELTA_AUTH_ISSUER` | pathos-auth on localhost | |
 | `DELTA_SELF_UPDATE` | `false` (`true` in the image) | daily `yt-dlp -U` |
 
 Limits per tier: `DELTA_ANON_*`, `DELTA_USER_*`, `DELTA_BOT_*`, see `application.yaml`.
